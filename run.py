@@ -27,7 +27,7 @@ from src.build_lib.cleaning_utils import *
 
 
 # Paths for storing data
-DATA_DIR = 'data'
+DATA_DIR = './data'
 # Data subdirectories
 DATA_DIR_RAW = os.path.join(DATA_DIR, 'raw')
 DATA_DIR_CLEAN = os.path.join(DATA_DIR, 'clean')

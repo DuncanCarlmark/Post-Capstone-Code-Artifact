@@ -2,13 +2,52 @@ import pandas as pd
 
 #---------------------------------------------------- CLEANING BILLBOARD DATA ----------------------------------------------------
 
-def clean_billboard(billboard_songs, billboard_features):
+# Clean billboard songs
+
+def clean_billboard_songs(df):
+    '''
+    Cleans billboard_songs by
+
+    1. Reordering and dropping unnecessary columns
+    2. Dropping songs from 2020
+    3. Dropping songs that could not be converted to datetime
+    4. Dropping songs that re-enter the charts more than 3 times to limit the amount of
+        Christmas/holiday songs that appear in the chart data
+
+    PARAMS:
+        df - pandas dataframe of billboard_songs.csv
+    RETURNS:
+        The cleaned pandas dataframe containing billboard_songs.csv 
+    '''
+
+    # Drop irrelevant column and reorder columns
+    clean_col_order = ['SongID', 
+                       'Song', 
+                       'Performer', 
+                       'WeekID', 
+                       'Week Position', 
+                       'Instance', 
+                       'Previous Week Position', 
+                       'Peak Position', 
+                       'Weeks on Chart']
+    df = df.drop(['url'], axis=1)[clean_col_order]
     
-    billboard_features = billboard_features.dropna(subset=['spotify_track_id', 'spotify_genre']).drop_duplicates(subset='spotify_track_id')
-    billboard_features['spotify_genre'] = [x.strip('[]').strip('\'').split('\', \'') for x in billboard_features['spotify_genre']]
+    # Drop Songs from 2020
+    # Dropping instances of NA values is the same as dropping songs from 2020 since
+    # 2020 songs have no chart info
+    df = df[~df['Instance'].isnull()]
+    
+    # Convert WeekID to datetime
+    df['WeekID'] = pd.to_datetime(df['WeekID'], format = '%m/%d/%Y').reset_index(drop=True)
+    
+    # Drop any values that could not be converted to datetime
+    df = df[~df['WeekID'].isnull()]
+    
+    # CHRISTMAS CLEANING
+    songs_to_drop = df[df['Instance'] > 3]['SongID'].unique()
+    df = df[~df['SongID'].isin(songs_to_drop)]
 
-    return billboard_songs, billboard_features
-
+    return df.reset_index(drop=True)
 
 #---------------------------------------------------- CLEANING LAST.FM DATA ----------------------------------------------------
 
